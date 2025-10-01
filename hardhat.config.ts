@@ -1,50 +1,32 @@
-import '@typechain/hardhat';
-import "hardhat-contract-sizer";
+import '@nomiclabs/hardhat-ethers';
+import '@openzeppelin/hardhat-upgrades';
 import { HardhatUserConfig } from "hardhat/types";
+import dotenv from 'dotenv';
 
-function viaIR(version: string, runs: number) {
-    return {
-        version,
+dotenv.config();
+
+const config: HardhatUserConfig = {
+    solidity: {
+        version: "0.8.24",
         settings: {
             optimizer: {
                 enabled: true,
-                runs: runs,
+                runs: 0,
             },
-            evmVersion: 'paris',
-            viaIR: true,
-        },
-    };
-}
-
-const config: HardhatUserConfig = {
-    paths: {
-        sources: './contracts',
-        tests: './test',
-        artifacts: "./build/artifacts",
-        cache: "./build/cache"
+            evmVersion: 'paris'
+        }
     },
-    solidity: {
-        compilers: [
-            {
-                version: '0.8.24',
-                settings: {
-                    optimizer: {
-                        enabled: true,
-                        runs: 0,
-                    },
-                    evmVersion: 'paris'
-                },
-            }
-        ],
-        overrides: {
+    networks: {
+        hardhat: {
+            chainId: 31337
         },
-    },
-    contractSizer: {
-        disambiguatePaths: false,
-        runOnCompile: false,
-        strict: true,
-        only: [],
+        localhost: {
+            url: "http://127.0.0.1:8545"
+        },
+        // arbitrumSepolia: {
+        //     url: "https://arb-sepolia.g.alchemy.com/v2/l6n_J_q6R2mgS1g-K7V7troqBMeQVlAV",
+        //     chainId: 421614,
+        //     accounts: [process.env.PRIVATE_KEY],
+        // }
     }
 };
-
-export default config;

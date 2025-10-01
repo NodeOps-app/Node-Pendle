@@ -1,0 +1,26 @@
+# Copy to project root as .env and adjust as needed for your fork
+
+# Core tokens
+NODE=0xd606e6725E030099024091eE411495593cB18F9D
+
+# Pendle infrastructure (Arbitrum One)
+PENDLE_ROUTER=0x888888888889758F76e7103c6CbF23ABbF58F946
+PENDLE_YIELD_CONTRACT_FACTORY=0xFF29e023910FB9bfc86729c1050AF193A45a0C0c
+PENDLE_MARKET_FACTORY=0xd29e76c6F15ada0150D10A1D3f45aCCD2098283B
+
+# Deployed (populate after running 01-deploy-stack.js)
+VAULT_ERC4626=
+GNODE=  # shares token = vault address
+GNODE_QUEUE=
+SY_ADDRESS=
+
+# PT / YT / Market (optional if factory is permissioned on fork)
+PT_ADDRESS=
+YT_ADDRESS=
+MARKET_ADDRESS=
+EXPIRY=1767225600
+
+# Example script params
+PT_IN=2000000000000000000000
+SY_IN=2000000000000000000000
+MIN_LP_OUT=0
