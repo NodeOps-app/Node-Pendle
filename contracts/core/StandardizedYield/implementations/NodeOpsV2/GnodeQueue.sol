@@ -23,11 +23,18 @@ contract GnodeQueue is Initializable, ReentrancyGuardUpgradeable, AccessControlU
     uint256 public epochSize;
     uint256 public epochOutflowLimit;
     uint256 public epochStart;
-    uint256 public epochOutflowUsed;
+    uint256 public epochOutflowUsed;   
+    uint256 public nextRequestId;
+
+    mapping(uint256 => Request) public requests;
+
+    // Per-user indexing for request IDs
+    mapping(address => uint256[]) private _userRequestIds;
+
+    // Storage gap for upgradeability
+    uint256[49] private __gap; // reduced by 1 due to _userRequestIds addition
 
     struct Request { uint256 shares; uint256 earliest; address user; bool claimed; }
-    mapping(uint256 => Request) public requests;
-    uint256 public nextRequestId;
 
     event ParamsUpdated(uint256 minDelay, uint256 epochSize, uint256 epochOutflowLimit);
     event Requested(address indexed user, uint256 id, uint256 shares, uint256 earliest);
@@ -72,6 +79,7 @@ contract GnodeQueue is Initializable, ReentrancyGuardUpgradeable, AccessControlU
         id = nextRequestId++;
         requests[id] = Request({ shares: shares, earliest: block.timestamp + minDelay, user: msg.sender, claimed: false });
         gnode.safeTransferFrom(msg.sender, address(this), shares);
+        _userRequestIds[msg.sender].push(id);
         emit Requested(msg.sender, id, shares, requests[id].earliest);
     }
 
@@ -95,6 +103,29 @@ contract GnodeQueue is Initializable, ReentrancyGuardUpgradeable, AccessControlU
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(UPGRADER_ROLE) {}
+
+    // ======== View helpers (user indexing) ========
+    function getUserRequestIds(address user) external view returns (uint256[] memory) {
+        return _userRequestIds[user];
+    }
+
+    function getUserPendingRequestIds(address user) external view returns (uint256[] memory) {
+        uint256[] memory ids = _userRequestIds[user];
+        uint256 n = ids.length;
+        uint256 pendingCount = 0;
+        for (uint256 i = 0; i < n; ) {
+            if (!requests[ids[i]].claimed) pendingCount++;
+            unchecked { i++; }
+        }
+        uint256[] memory out = new uint256[](pendingCount);
+        uint256 k = 0;
+        for (uint256 i = 0; i < n; ) {
+            uint256 rid = ids[i];
+            if (!requests[rid].claimed) { out[k++] = rid; }
+            unchecked { i++; }
+        }
+        return out;
+    }
 }
 
 

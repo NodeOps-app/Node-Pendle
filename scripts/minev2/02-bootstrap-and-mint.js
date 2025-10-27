@@ -52,23 +52,28 @@ async function main() {
 
   let dec = 18;
   try { dec = await node.decimals(); } catch { console.log("[WARN] NODE.decimals() failed; defaulting 18"); }
-  console.log("NODE.decimals:", dec);
+  const mintAmtEnv = process.env.MINT_AMT || "10000";
+  const depositAmtEnv = process.env.DEPOSIT_AMT; // optional override
+  const mintAmt = ethers.utils.parseUnits(mintAmtEnv, dec);
+  console.log("Configured MINT_AMT:", mintAmtEnv);
+  if (depositAmtEnv) console.log("Configured DEPOSIT_AMT:", depositAmtEnv);
 
-  const targetUsers = [u1, u2];
-  const mintAmt = ethers.utils.parseUnits("10000", dec);
+  const targetUsers = ["0xE552aD32431C63563c936d582117a3fc6E256761"];
 
   // Attempt mint to users (best-effort)
   for (const usr of targetUsers) {
-    const addr = await usr.getAddress();
+    const addr = await usr;
     try {
       const tx = await node.mint(addr, mintAmt);
       await tx.wait();
       console.log(`[MINT] Minted ${mintAmt.toString()} to ${addr}`);
+      return;
     } catch (e) {
       console.log(`[MINT] Skipped mint to ${addr}:`, e?.reason || e?.message || e);
     }
   }
 
+  return;
   // Deposit NODE -> SY per user
   for (const usr of targetUsers) {
     const addr = await usr.getAddress();
@@ -81,11 +86,11 @@ async function main() {
     const balBefore = await nodeU.balanceOf(addr);
     console.log(`[USER ${addr}] NODE before:`, ethers.utils.formatUnits(balBefore, dec));
 
-    const depositAmt = balBefore.gte(mintAmt) ? mintAmt : balBefore;
+    const desired = depositAmtEnv ? ethers.utils.parseUnits(depositAmtEnv, dec) : mintAmt;
+    const depositAmt = balBefore.gte(desired) ? desired : balBefore;
     if (depositAmt.isZero()) { console.log(`[USER ${addr}] No NODE, skipping deposit`); continue; }
 
     try {
-      const curAllow = await nodeU.balanceOf(addr); // quick read to ensure provider ok
       const al = await nodeU.approve(SY, ethers.constants.MaxUint256);
       await al.wait();
     } catch (e) {

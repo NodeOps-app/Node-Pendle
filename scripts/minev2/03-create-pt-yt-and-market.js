@@ -5,9 +5,9 @@ const { ethers } = require("hardhat");
 require("dotenv").config();
 
 function computeSafeWeeklyExpiry() {
-  const WEEK = 7 * 24 * 60 * 60;
+  const WEEK = 2 * 24 * 60 * 60;
   const now = Math.floor(Date.now() / 1000);
-  const twoWeeks = now + 2 * WEEK;
+  const twoWeeks = now + WEEK;
   return Math.ceil(twoWeeks / WEEK) * WEEK;
 }
 

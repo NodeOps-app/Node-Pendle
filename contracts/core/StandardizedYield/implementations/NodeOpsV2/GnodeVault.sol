@@ -25,6 +25,9 @@ contract GnodeVault is
 
     event RevenueAdded(uint256 amount, uint256 totalAssetsAfter, uint256 exchangeRate);
 
+    // Storage gap for upgradeability
+    uint256[50] private __gap;
+
     /// @custom:oz-upgrades-unsafe-allow constructor
     constructor() {
         _disableInitializers();
